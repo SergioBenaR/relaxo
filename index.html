@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RELAXO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --surface-color: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.2);
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0b0f17;
+            --surface-color: #131c2e;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #60a5fa;
+            --accent-glow: rgba(96, 165, 250, 0.2);
+            --shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        /* Main Container */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        /* Header with Title and Controls at ~20px */
+        header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .icon-btn.active-lang {
+            border-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .icon-btn svg {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Core Vertical Axis Container */
+        .core-axis {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        /* Breathing Circle */
+        .breathing-wrapper {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .breathing-circle {
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: transform 4s ease-in-out;
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .breathing-circle.inhale {
+            transform: scale(1.15);
+        }
+
+        .breathing-circle.exhale {
+            transform: scale(0.9);
+        }
+
+        #breath-text {
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+        }
+
+        #timer-display {
+            font-size: 1.6rem;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        /* Phrase Card expanded width (+30%) */
+        .phrase-card {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 1.25rem;
+            border-radius: 16px;
+            width: 312px;
+            max-width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        #phrase-text {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            font-style: italic;
+            color: var(--text-main);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .phrase-btn {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+            align-self: center;
+            transition: all 0.2s;
+        }
+
+        .phrase-btn:hover {
+            color: var(--text-main);
+            border-color: var(--accent);
+        }
+
+        /* Controls & Audio Panel */
+        .controls-panel {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.7rem;
+            border-radius: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+        }
+
+        .btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* Sound Selector */
+        .sound-selector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .sound-selector-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sound-select {
+            width: 100%;
+            padding: 0.6rem;
+            border-radius: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* Footer Right-Aligned */
+        .app-footer {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 0.75rem;
+        }
+
+        .x-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .x-link:hover {
+            color: var(--accent);
+        }
+
+        .x-link svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+        }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <header>
+            <h1 id="app-title">RELAXO</h1>
+            <div class="header-controls">
+                <button class="icon-btn" onclick="toggleTheme()" id="theme-btn" title="Modo">☀️</button>
+                <!-- Bandera España SVG -->
+                <button class="icon-btn" onclick="setLanguage('es')" id="btn-lang-es" title="Español">
+                    <svg viewBox="0 0 750 500"><path fill="#c60b1e" d="M0 0h750v500H0z"/><path fill="#ffc400" d="M0 125h750v250H0z"/></svg>
+                </button>
+                <!-- Bandera USA SVG -->
+                <button class="icon-btn" onclick="setLanguage('en')" id="btn-lang-en" title="English">
+                    <svg viewBox="0 0 7410 3900"><path fill="#fff" d="M0 0h7410v3900H0z"/><path fill="#b22234" d="M0 0h7410v300H0l0 300h7410V300H0zm0 600h7410v300H0l0 300h7410V900H0zm0 1200h7410v300H0l0 300h7410V2100H0zm0 1200h7410v300H0l0 300h7410V3300H0z"/><path fill="#3c3b6e" d="M0 0h2964v2100H0z"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Vertical Axis: Circle + Phrase -->
+        <div class="core-axis">
+            <div class="breathing-wrapper">
+                <div id="circle" class="breathing-circle">
+                    <span id="breath-text">LISTO</span>
+                    <span id="timer-display">05:00</span>
+                </div>
+            </div>
+
+            <!-- Phrase Card expanded width -->
+            <div class="phrase-card">
+                <p id="phrase-text">Cargando...</p>
+                <button class="phrase-btn" onclick="nextPhrase()" id="btn-next-phrase">Cambiar frase</button>
+            </div>
+        </div>
+
+        <!-- Controls & Sound Selector -->
+        <div class="controls-panel">
+            <div class="action-row">
+                <button id="btn-start" class="btn" onclick="toggleSession()">Iniciar</button>
+                <button id="btn-stop" class="btn" onclick="stopSession()">Reiniciar</button>
+            </div>
+
+            <div class="sound-selector-group">
+                <label id="lbl-sound-select">Sonido ambiental</label>
+                <select id="sound-dropdown" class="sound-select" onchange="changeSound(this.value)">
+                    <!-- Options populated dynamically -->
+                </select>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <span id="footer-text">Hecho con calma por</span>
+            <a href="https://x.com/tu_usuario" target="_blank" rel="noopener" class="x-link">
+                <span id="footer-author">Tu Nombre</span>
+                <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+        </footer>
+    </div>
+
+    <!-- Audio Element for Custom Files -->
+    <audio id="audio-player" loop></audio>
+
+    <script>
+        const content = {
+            es: {
+                nextPhrase: "Cambiar frase",
+                start: "Iniciar",
+                pause: "Pausar",
+                resume: "Continuar",
+                stop: "Reiniciar",
+                ready: "LISTO",
+                inhale: "INHALA",
+                exhale: "EXHALA",
+                soundLabel: "Sonido ambiental",
+                footerText: "Hecho con calma por",
+                sounds: [
+                    "-- Sin sonido --",
+                    "Olas de Océano (1)",
+                    "Olas de Mar (2)",
+                    "Olas de Mar (3)",
+                    "Bosque (1)",
+                    "Bosque (2)"
+                ],
+                phrases: [
+                    "Tu tiempo es irreemplazable; no se lo regales ni un minuto más a una IA inútil.",
+                    "Tu energía mental es lo más valioso que tienes. Haz una pausa para ti; tú importas infinitamente más que cualquier respuesta fallida de la máquina.",
+                    "La máquina ya te hizo perder el tiempo; párate un momento a cuidar de ti. Tu bienestar está por encima de cualquier error del sistema.",
+                    "Tu tiempo vale más que esta frustración.",
+                    "No dejes que un error de máquina te robe energía real.",
+                    "Esto es solo tecnología fallando. Tú sigues en control.",
+                    "Respira: tu paz no depende de una IA.",
+                    "Un fallo técnico no merece tu enojo.",
+                    "Tu energía es limitada. Elige bien dónde ponerla."
+                ]
+            },
+            en: {
+                nextPhrase: "Next phrase",
+                start: "Start",
+                pause: "Pause",
+                resume: "Resume",
+                stop: "Reset",
+                ready: "READY",
+                inhale: "INHALE",
+                exhale: "EXHALE",
+                soundLabel: "Ambient sound",
+                footerText: "Made with calm by",
+                sounds: [
+                    "-- No sound --",
+                    "Ocean Waves (1)",
+                    "Sea Waves (2)",
+                    "Sea Waves (3)",
+                    "Forest (1)",
+                    "Forest (2)"
+                ],
+                phrases: [
+                    "Your time is irreplaceable; don't gift another minute of it to a useless AI.",
+                    "Your mental energy is your most valuable asset. Take a break for yourself; you matter infinitely more than any failed machine response.",
+                    "The machine already wasted your time; pause a moment to care for yourself. Your well-being comes before any system error.",
+                    "Your time is worth more than this frustration.",
+                    "Don't let a machine error rob you of real energy.",
+                    "This is just technology failing. You are still in control.",
+                    "Breathe: your peace does not depend on an AI.",
+                    "A technical glitch does not deserve your anger.",
+                    "Your energy is limited. Choose wisely where to spend it."
+                ]
+            }
+        };
+
+        const soundFiles = [
+            "",
+            "ocean_waves.mp3",
+            "sea_waves_2.mp3",
+            "sea_waves_1.mp3",
+            "forest_2.mp3",
+            "forest_1.mp3"
+        ];
+
+        let currentLang = localStorage.getItem('relaxo_lang') || 'es';
+        let isRunning = false;
+        let timeLeft = 300;
+        let timerInterval = null;
+        let breathTimeout = null;
+        let phraseIdx = 0;
+
+        const audioPlayer = document.getElementById('audio-player');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updatePhraseText();
+            setupLanguageUI();
+        });
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('relaxo_lang', lang);
+            setupLanguageUI();
+        }
+
+        function setupLanguageUI() {
+            const t = content[currentLang];
+            document.getElementById('btn-next-phrase').innerText = t.nextPhrase;
+            document.getElementById('btn-start').innerText = isRunning ? t.pause : t.start;
+            document.getElementById('btn-stop').innerText = t.stop;
+            if (!isRunning) document.getElementById('breath-text').innerText = t.ready;
+            document.getElementById('lbl-sound-select').innerText = t.soundLabel;
+            document.getElementById('footer-text').innerText = t.footerText;
+            
+            // Highlight active flag button
+            document.getElementById('btn-lang-es').classList.toggle('active-lang', currentLang === 'es');
+            document.getElementById('btn-lang-en').classList.toggle('active-lang', currentLang === 'en');
+            
+            // Populate sound dropdown dynamically preserving selection
+            const dropdown = document.getElementById('sound-dropdown');
+            const currentSelection = dropdown.value;
+            dropdown.innerHTML = "";
+            t.sounds.forEach((soundName, idx) => {
+                const opt = document.createElement('option');
+                opt.value = soundFiles[idx];
+                opt.text = soundName;
+                dropdown.appendChild(opt);
+            });
+            dropdown.value = currentSelection;
+
+            updateTimerDisplay();
+        }
+
+        function updatePhraseText() {
+            const list = content[currentLang].phrases;
+            document.getElementById('phrase-text').innerText = `"${list[phraseIdx]}"`;
+        }
+
+        function nextPhrase() {
+            const list = content[currentLang].phrases;
+            phraseIdx = (phraseIdx + 1) % list.length;
+            updatePhraseText();
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('theme-btn');
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.setAttribute('data-theme', 'light');
+                btn.innerText = '🌙';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                btn.innerText = '☀️';
+            }
+        }
+
+        function toggleSession() {
+            const t = content[currentLang];
+            const btn = document.getElementById('btn-start');
+
+            if (!isRunning) {
+                isRunning = true;
+                btn.innerText = t.pause;
+                btn.classList.add('active');
+                startTimer();
+                startBreathing();
+            } else {
+                isRunning = false;
+                btn.innerText = t.resume;
+                btn.classList.remove('active');
+                clearInterval(timerInterval);
+                clearTimeout(breathTimeout);
+            }
+        }
+
+        function stopSession() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            clearTimeout(breathTimeout);
+            timeLeft = 300;
+            updateTimerDisplay();
+            resetCircle();
+            const t = content[currentLang];
+            const btn = document.getElementById('btn-start');
+            btn.innerText = t.start;
+            btn.classList.remove('active');
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    stopSession();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            document.getElementById('timer-display').innerText = 
+                `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function startBreathing() {
+            const circle = document.getElementById('circle');
+            const breathText = document.getElementById('breath-text');
+            const t = content[currentLang];
+
+            function loop() {
+                if (!isRunning) return;
+                breathText.innerText = t.inhale;
+                circle.className = "breathing-circle inhale";
+
+                breathTimeout = setTimeout(() => {
+                    if (!isRunning) return;
+                    breathText.innerText = t.exhale;
+                    circle.className = "breathing-circle exhale";
+
+                    breathTimeout = setTimeout(loop, 6000);
+                }, 4000);
+            }
+            loop();
+        }
+
+        function resetCircle() {
+            const circle = document.getElementById('circle');
+            const breathText = document.getElementById('breath-text');
+            const t = content[currentLang];
+            circle.className = "breathing-circle";
+            breathText.innerText = t.ready;
+        }
+
+        function changeSound(filename) {
+            if (!filename) {
+                audioPlayer.pause();
+                audioPlayer.src = "";
+                return;
+            }
+            audioPlayer.src = filename;
+            audioPlayer.volume = 0.8;
+            audioPlayer.play().catch(err => console.log("Audio play blocked until interaction"));
+        }
+    </script>
+</body>
+</html>
