@@ -261,8 +261,13 @@
             letter-spacing: 0.05em;
         }
 
+        .sound-row {
+            display: flex;
+            gap: 8px;
+        }
+
         .sound-select {
-            width: 100%;
+            flex: 1;
             padding: 0.6rem;
             border-radius: 10px;
             background: var(--bg-color);
@@ -271,6 +276,23 @@
             font-size: 0.85rem;
             cursor: pointer;
             outline: none;
+        }
+
+        .sound-toggle-btn {
+            padding: 0 0.8rem;
+            border-radius: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sound-toggle-btn:hover {
+            border-color: var(--accent);
         }
 
         /* Footer Right-Aligned */
@@ -350,17 +372,20 @@
 
             <div class="sound-selector-group">
                 <label id="lbl-sound-select">Sonido ambiental</label>
-                <select id="sound-dropdown" class="sound-select" onchange="changeSound(this.value)">
-                    <!-- Options populated dynamically -->
-                </select>
+                <div class="sound-row">
+                    <select id="sound-dropdown" class="sound-select" onchange="changeSound(this.value)">
+                        <!-- Options populated dynamically -->
+                    </select>
+                    <button id="sound-toggle-btn" class="sound-toggle-btn" onclick="toggleSoundPlay()" title="Pausar/Reproducir sonido">🔊</button>
+                </div>
             </div>
         </div>
 
         <!-- Footer -->
         <footer class="app-footer">
             <span id="footer-text">Hecho con calma por</span>
-            <a href="https://x.com/checho_tech" target="_blank" rel="noopener" class="x-link">
-                <span id="footer-author">$ergius</span>
+            <a href="https://x.com/tu_usuario" target="_blank" rel="noopener" class="x-link">
+                <span id="footer-author">Tu Nombre</span>
                 <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
             </a>
         </footer>
@@ -450,6 +475,7 @@
         let timerInterval = null;
         let breathTimeout = null;
         let phraseIdx = 0;
+        let isAudioPlaying = false;
 
         const audioPlayer = document.getElementById('audio-player');
 
@@ -595,14 +621,42 @@
         }
 
         function changeSound(filename) {
+            const toggleBtn = document.getElementById('sound-toggle-btn');
             if (!filename) {
                 audioPlayer.pause();
                 audioPlayer.src = "";
+                isAudioPlaying = false;
+                toggleBtn.innerText = '🔇';
                 return;
             }
             audioPlayer.src = filename;
             audioPlayer.volume = 0.8;
-            audioPlayer.play().catch(err => console.log("Audio play blocked until interaction"));
+            audioPlayer.play().then(() => {
+                isAudioPlaying = true;
+                toggleBtn.innerText = '🔊';
+            }).catch(err => {
+                console.log("Audio play blocked until interaction");
+                isAudioPlaying = false;
+                toggleBtn.innerText = '🔇';
+            });
+        }
+
+        function toggleSoundPlay() {
+            const dropdown = document.getElementById('sound-dropdown');
+            const toggleBtn = document.getElementById('sound-toggle-btn');
+            
+            if (!dropdown.value) return; // Si no hay sonido seleccionado, no hace nada
+
+            if (isAudioPlaying) {
+                audioPlayer.pause();
+                isAudioPlaying = false;
+                toggleBtn.innerText = '🔇';
+            } else {
+                audioPlayer.play().then(() => {
+                    isAudioPlaying = true;
+                    toggleBtn.innerText = '🔊';
+                }).catch(err => console.log("Error playing audio"));
+            }
         }
     </script>
 </body>
